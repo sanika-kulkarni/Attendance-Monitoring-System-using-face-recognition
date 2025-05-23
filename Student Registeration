@@ -1,0 +1,466 @@
+#This code is an implementation of a simple student registration system that provides basic features to input and save student information into a database.
+import java.awt.*;
+import java.awt.event.*;
+
+import javax.swing.*;
+
+import java.io.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
+import javax.swing.border.*;
+import javax.swing.event.*;
+import java.applet.*;
+
+public class RegisterStudent extends JFrame implements ActionListener,Runnable
+{
+	private JPanel jpInfo = new JPanel();
+	private JLabel lbNo, lbName, lbDate, lbBranch,lbMobile,lbClassName,lbCrimeAdd;
+	private JTextField txtNo, txtName, txtMobile;//txtCrimeName,txtCrimeAdd;
+	private JComboBox cboMonth, cboDay, cboYear;
+	private JButton btnSave, btnCancel;
+	private JComboBox cboClass,cboBranch;
+	private JButton btnStartCam,btnCapture;
+	private int count = 0;
+	private int rows = 0;
+	private	int total = 0;
+private String records[][] = new String [500][8];
+
+	private String saves[][] = new String [500][8];
+
+	private FileInputStream fis;
+	private DataInputStream dis;
+	JPicsPanel pp;
+	boolean running=false,detectFace=false,save=false;
+	RegisterStudent(int i){}
+	public void run(){}
+	RegisterStudent ()
+	{
+		super ("Attendance System");
+		setSize (574, 340);
+		setResizable(false);
+		setLocationRelativeTo(null);
+		jpInfo.setBounds (0, 0, 500, 115);
+		jpInfo.setLayout (null);
+lbNo = new JLabel ("Roll_No:");
+		lbNo.setForeground (Color.black);
+		lbNo.setBounds (265, 20, 90, 25);
+
+        lbName = new JLabel ("Student Name:");
+		lbName.setForeground (Color.black);
+        lbName.setBounds (265, 60, 90, 25);
+
+		lbDate = new JLabel ("Date of Birth:");
+		lbDate.setForeground (Color.black);
+		lbDate.setBounds (265, 100, 90, 25);
+
+		lbMobile = new JLabel ("Mobile No: ");
+		lbMobile.setForeground (Color.black);
+		lbMobile.setBounds (265, 140, 90, 25);
+lbClassName = new JLabel ("Class");
+		lbClassName.setForeground (Color.black);
+		lbClassName.setBounds (265, 180, 90, 25);
+
+		lbBranch = new JLabel ("Branch");
+		lbBranch.setForeground (Color.black);
+		lbBranch.setBounds (435, 180, 90, 25);
+
+		txtNo = new JTextField ();
+		txtNo.setHorizontalAlignment (JTextField.RIGHT);
+		txtNo.setBounds (355, 20, 205, 25);
+
+		txtName = new JTextField ();
+		txtName.setHorizontalAlignment (JTextField.RIGHT);
+		txtName.setBounds (355, 60, 205, 25);
+
+		txtMobile = new JTextField ();
+		txtMobile.setHorizontalAlignment (JTextField.RIGHT);
+		txtMobile.setBounds (355, 140, 205, 25);
+txtNo.addKeyListener (new KeyAdapter()
+		{
+			public void keyTyped (KeyEvent ke)
+			{
+				char c = ke.getKeyChar ();
+				if (!((Character.isDigit (c) || (c == KeyEvent.VK_BACK_SPACE))))
+				{
+					getToolkit().beep ();
+					ke.consume ();
+      			}
+    		}
+  		}
+		);
+
+		txtName.addKeyListener (new KeyAdapter()
+		{
+			public void keyTyped (KeyEvent ke)
+			{
+char c = ke.getKeyChar ();
+				if (Character.isDigit (c))// || (c == KeyEvent.VK_BACK_SPACE))))
+				{
+					getToolkit().beep ();
+					ke.consume ();
+      			}
+    		}
+  		}
+		);
+
+		txtMobile.addKeyListener (new KeyAdapter()
+		{
+			public void keyTyped (KeyEvent ke)
+			{
+				char c = ke.getKeyChar ();
+if (!((Character.isDigit (c) || (c == KeyEvent.VK_BACK_SPACE))))
+				{
+					getToolkit().beep ();
+					ke.consume ();
+      		    }
+    	  }
+  		}
+		);
+		String className[] = {"F.E.", "S.E.", "T.E.", "B.E."};
+		cboClass = new JComboBox (className);
+
+		String BranchName[] = {"C.S.", "I.T.", "EnTC.", "Civil","Mech"};
+		cboBranch = new JComboBox (BranchName);
+
+		cboClass.setBounds (355, 180, 60, 25);
+		cboBranch.setBounds (485, 180, 60, 25);
+String Months[] = {"January", "February", "March", "April", "May", "June","July", "August", "September", "October", "November", "December"};
+		cboMonth = new JComboBox (Months);
+		cboDay = new JComboBox ();
+		cboYear = new JComboBox ();
+		for (int i = 1; i <= 31; i++)
+		{
+			String days = "" + i;
+			cboDay.addItem (days);
+		}
+		for (int i = 1990; i <= 2017; i++)
+		{
+			String years = "" + i;
+			cboYear.addItem (years);
+}
+
+		//Aligning The Date Option Controls.
+		cboMonth.setBounds (355, 105, 92, 25);
+		cboDay.setBounds (452, 105, 43, 25);
+		cboYear.setBounds (500, 105, 60, 25);
+
+		//Aligning The Buttons.
+		btnSave = new JButton ("Save");
+		btnSave.setBounds (285, 265, 120, 25);
+		btnSave.addActionListener (this);
+
+		btnCancel = new JButton ("Cancel");
+		btnCancel.setBounds (425, 265, 120, 25);
+		btnCancel.addActionListener (this);
+
+		btnStartCam = new JButton("Start Camera");
+		btnStartCam.setBounds(10,265,120,25);
+		btnStartCam.addActionListener(this);
+btnCapture = new JButton("Capture Face");
+		btnCapture.setBounds(150,265,120,25);
+		btnCapture.addActionListener(this);
+		
+		
+		CameraPanel cm=new CameraPanel();
+		cm.setBounds(10,10,250,230);
+		pp = new JPicsPanel("Student_Photo/temp.jpg"); // the sequence of snaps appear here
+		cm.add(pp,JPanel.CENTER_ALIGNMENT);
+
+		//Adding the All the Controls to Panel.
+		jpInfo.add (lbNo);
+		jpInfo.add (txtNo);
+		jpInfo.add (lbName);
+		jpInfo.add (txtName);
+		jpInfo.add (lbDate);
+		jpInfo.add (cboMonth);
+		jpInfo.add (cboDay);
+jpInfo.add (cboYear);
+		jpInfo.add (lbMobile);
+		jpInfo.add (txtMobile);
+		jpInfo.add(lbClassName);
+		jpInfo.add(cboBranch);
+		jpInfo.add(cboClass);
+		jpInfo.add(lbBranch);
+		jpInfo.add (btnSave);
+		jpInfo.add (btnCancel);
+		jpInfo.add (cm);
+		jpInfo.add (btnStartCam);
+		jpInfo.add (btnCapture);
+
+		//Adding Panel to Window.
+		getContentPane().add (jpInfo);
+//In the End Showing the New Account Window.
+		setVisible (true);
+		addWindowListener (new WindowAdapter ()
+		{
+			public void windowClosing (WindowEvent we)
+			{
+				quitApp ();
+			}
+		}
+		);
+}
+	private void quitApp ()
+	{
+		try
+		{
+		    	int reply = JOptionPane.showConfirmDialog (this,"Are you really want to exit\nFrom Attendance System?","Attendance System - Exit", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE);
+				if (reply == JOptionPane.YES_OPTION)
+				{
+				setVisible (false);	//Hide the Frame.
+AudioClip ac = Applet.newAudioClip(new File("Images/Good_Bye.wav").toURL());
+				ac.play();
+
+				RegisterStudent b=new RegisterStudent(0);
+				Thread t=new Thread(b);
+				t.sleep(1000);
+				System.exit (0);        //Close the Application.
+				}
+				else if (reply == JOptionPane.NO_OPTION)
+				{
+				setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+			   }
+		 }
+   	    catch (Exception e) {}
+     }
+	//Function use By Buttons of Window to Perform Action as User Click Them.
+public void actionPerformed (ActionEvent ae)
+	{
+		Object obj = ae.getSource();
+
+		if (obj == btnSave)
+		{
+				if(detectFace)
+				{
+					populateArray ();	//Load All Existing Records in Memory.
+					findRec ();		//Finding if Student No. Already Exist or Not.
+				}
+				else
+					JOptionPane.showMessageDialog(null,"Detect The Face From Webcam");
+		
+		}
+		if (obj == btnCancel)
+{
+			txtClear ();
+			setVisible (false);
+			dispose();
+		}
+		if(obj == btnStartCam)
+		{
+			if (txtNo.getText().equals(""))
+			{
+				JOptionPane.showMessageDialog (this, "Please! Provide Student number.","Attendance System - EmptyField", JOptionPane.PLAIN_MESSAGE);
+				txtNo.requestFocus();
+			}
+			else if (txtName.getText().equals("")) {
+				JOptionPane.showMessageDialog (this, "Please! Provide Name of Student.","Attendance System - EmptyField", JOptionPane.PLAIN_MESSAGE);
+				txtName.requestFocus ();
+			}
+			else if (txtMobile.getText().equals(""))
+{
+				JOptionPane.showMessageDialog (this, "Please! Provide Mobile Number.","Attendance System - EmptyField", JOptionPane.PLAIN_MESSAGE);
+				txtMobile.requestFocus ();
+			}
+			else if (txtMobile.getText().length()!=10)
+			{
+				JOptionPane.showMessageDialog (this, "Invalid Mobile Number",
+						"AttendanceSystem - EmptyField", JOptionPane.PLAIN_MESSAGE);
+				txtMobile.requestFocus ();
+			}	
+else
+			{			
+  			    boolean found=false;
+				populateArray ();
+				for (int x = 0; x < total; x++) {
+				if (records[x][0].equals (txtNo.getText()))
+				{
+					found = true;
+					JOptionPane.showMessageDialog (this, "Student No. " + txtNo.getText () + " is Already Exist.",
+								"Attendance System - WrongNo", JOptionPane.PLAIN_MESSAGE);
+					txtClear ();
+					break;
+					}
+				}
+				if(!found)
+				{
+					if(!running)
+{
+						pp.setImage("Student_Photo/"+txtNo.getText().trim()+".jpg");
+						new Thread(pp).start();
+						running=true;
+					}
+				}
+
+			}
+		}
+		else
+		if(obj == btnCapture)
+		{
+			if(running)
+			{
+				pp.closeDown();
+				running=false;
+				detectFace=true;
+			}
+else
+				JOptionPane.showMessageDialog(null,"Webcam Not Started \n \t Start Webcam");
+		}
+
+	}
+
+	//Function use to load all Records from File when Application Execute.
+	void populateArray ()
+	{
+		try
+		{
+			fis = new FileInputStream ("Attendance.dat");
+			dis = new DataInputStream (fis);
+			while (true)
+			{
+				for (int i = 0; i < 8; i++)
+				{
+					records[rows][i] = dis.readUTF ();
+				}
+				rows++;
+}
+		}
+		catch (Exception ex)
+		{
+			total = rows;
+			if (total == 0) { }
+			else {
+				try {
+					dis.close();
+					fis.close();
+				}
+				catch (Exception exp) { }
+			}
+		}
+
+	}
+
+	//Function use to Find Record by Matching the Contents of Records Array with ID TextBox.
+	void findRec () {
+boolean found = false;
+		for (int x = 0; x < total; x++) {
+			if (records[x][0].equals (txtNo.getText())) {
+				found = true;
+				JOptionPane.showMessageDialog (this, "Student No. " + txtNo.getText () + " is Already Exist.",
+							"Attendance System - WrongNo", JOptionPane.PLAIN_MESSAGE);
+				txtClear ();
+				break;
+			}
+		}
+		if (found == false) {
+			saveArray ();
+			save=true;
+		}
+
+	}
+
+	//Function use to add new Element to Array.
+	void saveArray ()
+{
+		saves[count][0] = txtNo.getText ();
+		saves[count][1] = txtName.getText ();
+		saves[count][2] = "" + cboMonth.getSelectedItem ();
+		saves[count][3] = "" + cboDay.getSelectedItem ();
+		saves[count][4] = "" + cboYear.getSelectedItem ();
+		saves[count][5] = txtMobile.getText ();
+		saves[count][6] ="" + cboClass.getSelectedItem (); //txtCrimeName.getText ();
+		saves[count][7] ="" +cboBranch.getSelectedItem (); //txtCrimeAdd.getText ();
+		saveFile ();	//Save This Array to File.
+		count++;
+	}
+
+	//Function use to Save new Record to the File.
+	void saveFile ()
+	{
+		try
+		{
+			DAO d = new DAO();
+			FileOutputStream fos = new FileOutputStream ("Attendance.dat", true);
+DataOutputStream dos = new DataOutputStream (fos);
+			String roll = saves[count][0];
+			String name = saves[count][1];
+			String month = saves[count][2];
+			String day = saves[count][3];
+			String year = saves[count][4];
+			String mno = saves[count][5];
+			String class1 = saves[count][6];
+			String branch = saves[count][7];
+			Connection conn = d.getConnection();
+
+			String insertquery = "insert into registration values(?,?,?,?,?,?)";
+			PreparedStatement pstmt = null;
+			try {
+				pstmt = conn.prepareStatement(insertquery);
+				pstmt.setString(1, name);
+				pstmt.setString(2, roll);
+				pstmt.setString(3, month+"/" + day + "/"+ year);
+				pstmt.setString(4, mno);
+				pstmt.setString(5,class1);
+				pstmt.setString(6, branch);
+rows = pstmt.executeUpdate();
+
+			} catch (SQLException e) 
+			{
+				JOptionPane.showMessageDialog (this, "Duplicate Entry: Please change Rollno",
+						"Attendance System - Duplicate Record Saved", JOptionPane.PLAIN_MESSAGE);
+
+				System.out.println(e);
+			} finally {
+				try {
+					pstmt.close();
+
+					conn.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+
+			}
+JOptionPane.showMessageDialog (this, "The Record has been Saved Successfully",
+						"Attendance System - Record Saved", JOptionPane.PLAIN_MESSAGE);
+//			txtClear ();
+//			dos.close();
+//			fos.close();
+//			dispose();
+			setVisible (false);
+			Project.method();
+
+		}
+		catch (IOException ioe)
+		{
+			JOptionPane.showMessageDialog (this, "There are Some Problem with File",
+						"Attendance System - Problem", JOptionPane.PLAIN_MESSAGE);
+		}
+
+	}
+//Function use to Clear all TextFields of Window.
+	void txtClear ()
+	{
+		txtNo.setText ("");
+		txtName.setText ("");
+		txtMobile.setText ("");
+		txtNo.requestFocus ();
+	}
+
+	class CameraPanel extends JPanel
+	{
+		CameraPanel(){}
+
+		public void paint(Graphics g)
+		{
+			EtchedBorder border=new EtchedBorder(EtchedBorder.LOWERED,Color.gray ,Color.lightGray );
+			Font f=new Font("Times New Roman",Font.BOLD,30);
+			g.setFont(f);
+			border.paintBorder(this, g, 0, 0,getWidth(),getHeight());
+			g.drawString("WebCam",50,120);
+		}
+}
+
+}
